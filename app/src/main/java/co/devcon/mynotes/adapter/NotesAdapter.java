@@ -21,9 +21,13 @@ public class NotesAdapter extends RecyclerView.Adapter<NotesAdapter.NoteViewHold
     private Context mContext;
     private ArrayList<NoteModel> mData;
 
-    public NotesAdapter(Context context) {
+    private OnItemClick mListener;
+
+    public NotesAdapter(Context context, OnItemClick listener) {
         mContext = context;
         mData = new ArrayList<>();
+
+        mListener = listener;
     }
 
     @Override
@@ -38,7 +42,8 @@ public class NotesAdapter extends RecyclerView.Adapter<NotesAdapter.NoteViewHold
         NoteModel model = mData.get(position);
 
         holder.title.setText(model.getTitle());
-        holder.description.setText(model.getTitle());
+        holder.description.setText(model.getDescription());
+        // set description as log
     }
 
     @Override
@@ -52,17 +57,37 @@ public class NotesAdapter extends RecyclerView.Adapter<NotesAdapter.NoteViewHold
         notifyDataSetChanged();
     }
 
-    class NoteViewHolder extends RecyclerView.ViewHolder {
+    public void clear() {
+        mData.clear();
+
+        notifyDataSetChanged();
+    }
+
+    public NoteModel getItem(int position) {
+        return mData.get(position);
+    }
+
+    public interface OnItemClick {
+        void onClick(int pos);
+    }
+
+    class NoteViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
 
         private TextView title;
         private TextView description;
 
-        public NoteViewHolder(View itemView) {
+        NoteViewHolder(View itemView) {
             super(itemView);
 
             title = itemView.findViewById(R.id.tv_title);
             description = itemView.findViewById(R.id.tv_description);
+
+            itemView.setOnClickListener(this);
         }
 
+        @Override
+        public void onClick(View view) {
+            mListener.onClick(getAdapterPosition());
+        }
     }
 }

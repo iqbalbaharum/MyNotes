@@ -1,20 +1,25 @@
 package co.devcon.mynotes.model;
 
+import com.google.firebase.database.IgnoreExtraProperties;
+
 import java.util.Date;
 
 /**
  * Created by root on 28/10/2017.
  */
-
+@IgnoreExtraProperties
 public class NoteModel {
 
     private String title;
     private String description;
-    private Date createdDate;
+    private long createdAt;
 
-    public NoteModel(String title, String description) {
+    public NoteModel() {}
+
+    public NoteModel(String title, String description, long createdAt) {
         this.title = title;
         this.description = description;
+        this.createdAt = createdAt;
     }
 
     public String getTitle() {
@@ -33,11 +38,11 @@ public class NoteModel {
         this.description = description;
     }
 
-    public Date getCreatedDate() {
-        return createdDate;
+    public long getCreatedAt() {
+        return createdAt;
     }
 
-    public void setCreatedDate(Date createdDate) {
-        this.createdDate = createdDate;
+    public void setCreatedAt(long createdAt) {
+        this.createdAt = createdAt;
     }
 }
