@@ -10,4 +10,7 @@ public class Reference {
 
     // Intent bundle
     public final static String NOTE_ID = "note_id";
+
+    // request code
+    public final static int RC_GOOGLE_SIGN_IN = 1000;
 }

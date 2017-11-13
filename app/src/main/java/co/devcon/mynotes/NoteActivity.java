@@ -9,6 +9,8 @@ import android.view.MenuItem;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -27,9 +29,17 @@ public class NoteActivity extends AppCompatActivity {
 
     private String mId;
 
+    // Firebase Authentication
+    private FirebaseAuth mFirebaseAuth;
+    private FirebaseUser mCurrentUser;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        mFirebaseAuth = FirebaseAuth.getInstance();
+        mCurrentUser = mFirebaseAuth.getCurrentUser();
+
         setContentView(R.layout.activity_note);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -39,10 +49,10 @@ public class NoteActivity extends AppCompatActivity {
         }
 
         // Binding
-        mTVTitle = (EditText) findViewById(R.id.et_title);
-        mTVDescription = (EditText) findViewById(R.id.et_description);
+        mTVTitle = findViewById(R.id.et_title);
+        mTVDescription = findViewById(R.id.et_description);
 
-        mReference = FirebaseDatabase.getInstance().getReference("1234").child(Reference.DB_NOTES);
+        mReference = FirebaseDatabase.getInstance().getReference(mCurrentUser.getUid()).child(Reference.DB_NOTES);
 
         Intent intent = getIntent();
         // Load record
@@ -103,7 +113,7 @@ public class NoteActivity extends AppCompatActivity {
                         System.currentTimeMillis()
                 );
 
-                save(Reference.DB_NOTES, model, new DatabaseReference.CompletionListener() {
+                save(model, new DatabaseReference.CompletionListener() {
                     @Override
                     public void onComplete(DatabaseError databaseError, DatabaseReference databaseReference) {
                         actionNotification(databaseError, R.string.done_saved);
@@ -127,10 +137,9 @@ public class NoteActivity extends AppCompatActivity {
 
     /***
      * Save record to firebase
-     * @param database
      * @param model
      */
-    private void save(String database, NoteModel model,
+    private void save(NoteModel model,
                       DatabaseReference.CompletionListener listener) {
 
         if(mId == null) {

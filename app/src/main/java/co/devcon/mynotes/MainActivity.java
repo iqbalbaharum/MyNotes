@@ -7,8 +7,12 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -31,16 +35,24 @@ public class MainActivity extends AppCompatActivity {
 
     private ArrayList<String> mKeys;
 
+    // Firebase Authentication
+    private FirebaseAuth mFirebaseAuth;
+    private FirebaseUser mCurrentUser;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        mFirebaseAuth = FirebaseAuth.getInstance();
+        mCurrentUser = mFirebaseAuth.getCurrentUser();
+
         setContentView(R.layout.activity_main);
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
         mKeys = new ArrayList<>();
 
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
+        FloatingActionButton fab = findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -54,7 +66,6 @@ public class MainActivity extends AppCompatActivity {
         mAdapter = new NotesAdapter(this, new NotesAdapter.OnItemClick() {
             @Override
             public void onClick(int pos) {
-                NoteModel model = mAdapter.getItem(pos);
                 // Open back note activity with data
                 Intent intent = new Intent(getApplicationContext(), NoteActivity.class);
                 intent.putExtra(Reference.NOTE_ID, mKeys.get(pos));
@@ -63,7 +74,7 @@ public class MainActivity extends AppCompatActivity {
         });
         recyclerView.setAdapter(mAdapter);
 
-        mNotesReference = FirebaseDatabase.getInstance().getReference("1234").child(Reference.DB_NOTES);
+        mNotesReference = FirebaseDatabase.getInstance().getReference(mCurrentUser.getUid()).child(Reference.DB_NOTES);
     }
 
     @Override
@@ -71,14 +82,14 @@ public class MainActivity extends AppCompatActivity {
         super.onStart();
 
         // listening for changes
-        mNotesReference.addValueEventListener(new ValueEventListener(){
+        mNotesReference.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 // clear table
                 mKeys.clear();
                 mAdapter.clear();
                 // load data
-                for(DataSnapshot noteSnapshot: dataSnapshot.getChildren()) {
+                for (DataSnapshot noteSnapshot : dataSnapshot.getChildren()) {
                     NoteModel model = noteSnapshot.getValue(NoteModel.class);
                     mAdapter.addData(model);
                     mKeys.add(noteSnapshot.getKey());
@@ -96,5 +107,26 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onStop() {
         super.onStop();
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.menu_main, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+
+        switch (item.getItemId()) {
+            case R.id.action_logout:
+                mFirebaseAuth.signOut();
+                Intent intent = new Intent(this, LoginActivity.class);
+                startActivity(intent);
+                finish();
+                break;
+        }
+
+        return true;
     }
 }
